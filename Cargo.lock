@@ -247,16 +247,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "enum_str"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "648c22fe6d82deb91c5d4c3363e63c9e38967d825708acf8375c68102ca58843"
-dependencies = [
- "failure",
- "failure_derive",
-]
-
-[[package]]
 name = "failure"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -940,7 +930,6 @@ checksum = "c111b5bd5695e56cffe5129854aa230b39c93a305372fdbb2668ca2394eea9f8"
 name = "slack"
 version = "0.1.0"
 dependencies = [
- "enum_str",
  "failure",
  "rocket",
  "rocket_contrib",
