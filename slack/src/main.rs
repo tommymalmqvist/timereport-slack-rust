@@ -4,10 +4,11 @@
 extern crate rocket;
 
 use failure::{bail, Error};
+use rocket::http::ContentType;
+use rocket::local::Client;
 use rocket::request::Form;
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 
 const BACKEND_URL: &str = "http://backend_url";
 
@@ -122,4 +123,33 @@ fn slack_request(req: Form<SlackRequest>) -> Json<SlackResponse> {
 
 fn main() {
     rocket::ignite().mount("/", routes![slack_request]).launch();
+}
+
+// new
+#[get("/")]
+fn hello() -> &'static str {
+    "Hello, world!"
+}
+
+fn rocket() -> rocket::Rocket {
+    rocket::ignite().mount("/", routes![slack_request])
+}
+
+#[cfg(test)]
+mod test {
+    use super::rocket;
+    use rocket::http::{ContentType, Status};
+    use rocket::local::Client;
+
+    #[test]
+    fn test_hello() {
+        let client = Client::new(rocket()).unwrap();
+        let mut response = client
+            .post("/")
+            .body("token=token&team_id=team_id&team_domain=team_domain&enterprise_id=enterprise_id&enterprise_name=enterprise_name&channel_id=channel_id&channel_name=channel_name&user_id=user_id&user_name=user_name&command=command&text=add+vacation+today&response_url=response_url&trigger_id=trigger_id&api_app_id=api_app_id")
+            .header(ContentType::Form)
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.body_string(), Some("Hello, world!".into()));
+    }
 }
