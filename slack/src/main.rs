@@ -150,6 +150,9 @@ mod test {
             .header(ContentType::Form)
             .dispatch();
         assert_eq!(response.status(), Status::Ok);
-        assert_eq!(response.body_string(), Some("Hello, world!".into()));
+        assert_eq!(
+            response.body_string(),
+            Some("{\"status\":\"vacation is a valid reason.\"}".into())
+        );
     }
 }
