@@ -6,7 +6,7 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_slog;
 
-#[macro_use(debug)]
+#[macro_use]
 extern crate slog;
 
 #[macro_use]
@@ -124,7 +124,7 @@ fn slack_request(req: Form<SlackRequest>) -> Json<SlackResponse> {
 
     // validate reason
     if command.len() == 3 || command.len() == 4 {
-        if let Ok(reason) = Reason::from_str(command[1]) {
+        if let Ok(_) = Reason::from_str(command[1]) {
             res.status = format!("{} is a valid reason.", command[1]);
         } else {
             res.status = format!("{} is an invalid reason.", command[1]);
