@@ -3,10 +3,28 @@
 #[macro_use]
 extern crate rocket;
 
+#[macro_use]
+extern crate rocket_slog;
+
+#[macro_use(debug)]
+extern crate slog;
+
+#[macro_use]
+extern crate sloggers;
+
 use failure::{bail, Error};
+use serde::{Deserialize, Serialize};
+
+use rocket::config::{Config, Environment, LoggingLevel};
 use rocket::request::Form;
 use rocket_contrib::json::Json;
-use serde::{Deserialize, Serialize};
+
+use rocket_slog::SlogFairing;
+use sloggers::{
+    terminal::{Destination, TerminalLoggerBuilder},
+    types::Severity,
+    Build,
+};
 
 const BACKEND_URL: &str = "http://backend_url";
 
@@ -119,10 +137,24 @@ fn slack_request(req: Form<SlackRequest>) -> Json<SlackResponse> {
     Json(res)
 }
 
-fn main() {
-    start_server().launch();
+#[tokio::main]
+async fn main() -> Result<(), Error> {
+    start_server().await?;
+
+    Ok(())
 }
 
-fn start_server() -> rocket::Rocket {
-    rocket::ignite().mount("/", routes![slack_request])
+pub async fn start_server() -> Result<(), Error> {
+    let mut builder = TerminalLoggerBuilder::new();
+    builder.level(Severity::Debug);
+    builder.destination(Destination::Stderr);
+    let logger = builder.build()?;
+    let fairing = SlogFairing::new(logger);
+
+    let config = Config::build(Environment::Development)
+        .log_level(LoggingLevel::Off)
+        .finalize()
+        .unwrap();
+    rocket::custom(config).attach(fairing).launch();
+    Ok(())
 }
