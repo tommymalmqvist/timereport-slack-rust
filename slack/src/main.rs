@@ -4,8 +4,6 @@
 extern crate rocket;
 
 use failure::{bail, Error};
-use rocket::http::ContentType;
-use rocket::local::Client;
 use rocket::request::Form;
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
@@ -142,7 +140,7 @@ mod test {
     use rocket::local::Client;
 
     #[test]
-    fn test_hello() {
+    fn test_slack_request() {
         let client = Client::new(rocket()).unwrap();
         let mut response = client
             .post("/")
@@ -150,6 +148,7 @@ mod test {
             .header(ContentType::Form)
             .dispatch();
         assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.content_type(), Some(ContentType::JSON));
         assert_eq!(
             response.body_string(),
             Some("{\"status\":\"vacation is a valid reason.\"}".into())
