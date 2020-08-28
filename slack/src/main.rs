@@ -12,6 +12,8 @@ extern crate slog;
 #[macro_use]
 extern crate sloggers;
 
+use model::{SlackRequest, SlackResponse};
+
 use failure::{bail, Error};
 use serde::{Deserialize, Serialize};
 
@@ -27,28 +29,6 @@ use sloggers::{
 };
 
 const BACKEND_URL: &str = "http://backend_url";
-
-#[derive(Serialize, Deserialize, Debug, FromForm)]
-struct SlackRequest {
-    token: String,
-    team_id: String,
-    team_domain: String,
-    enterprise_id: String,
-    enterprise_name: String,
-    channel_id: String,
-    channel_name: String,
-    user_id: String,
-    user_name: String,
-    command: String,
-    text: String,
-    response_url: String,
-    trigger_id: String,
-    api_app_id: String,
-}
-#[derive(Serialize, Deserialize, Debug)]
-struct SlackResponse {
-    status: String,
-}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Add {

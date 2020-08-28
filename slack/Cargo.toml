@@ -13,3 +13,4 @@ failure = "0.1.8"
 slog = "2.5.2"
 sloggers = "1.0.1"
 tokio = { version = "0.2", features = ["macros", "time"] }
+model = { path = "../model" }

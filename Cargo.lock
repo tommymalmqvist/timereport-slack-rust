@@ -809,6 +809,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "model"
+version = "0.1.0"
+dependencies = [
+ "rocket",
+ "rocket_contrib",
+ "serde",
+]
+
+[[package]]
 name = "net2"
 version = "0.2.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1227,6 +1236,7 @@ name = "slack"
 version = "0.1.0"
 dependencies = [
  "failure",
+ "model",
  "rocket",
  "rocket-slog",
  "rocket_contrib",
