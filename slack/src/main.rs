@@ -12,8 +12,6 @@ extern crate slog;
 #[macro_use]
 extern crate sloggers;
 
-use model::{SlackRequest, SlackResponse};
-
 use failure::{bail, Error};
 use serde::{Deserialize, Serialize};
 
@@ -27,6 +25,9 @@ use sloggers::{
     types::Severity,
     Build,
 };
+
+mod model;
+use model::{SlackRequest, SlackResponse};
 
 const BACKEND_URL: &str = "http://backend_url";
 

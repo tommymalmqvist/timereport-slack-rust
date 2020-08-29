@@ -3,5 +3,4 @@
 members = [
     "slack",
     "api",
-    "model",
 ]
