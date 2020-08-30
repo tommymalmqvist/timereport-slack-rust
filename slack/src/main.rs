@@ -21,7 +21,6 @@ extern crate failure_derive;
 use failure::{bail, Error};
 use serde::{Deserialize, Serialize};
 
-use rocket::config::{Config, Environment, LoggingLevel};
 use rocket::request::Form;
 use rocket_contrib::json::Json;
 
@@ -35,8 +34,8 @@ use sloggers::{
 mod model;
 use model::{SlackRequest, SlackResponse};
 
-mod validate;
-use validate::validate_token;
+mod utils;
+use utils::validate_token;
 
 const BACKEND_URL: &str = "http://backend_url";
 
@@ -85,35 +84,32 @@ impl Reason {
 
 #[post("/", data = "<req>")]
 fn slack_request(req: Form<SlackRequest>) -> Json<SlackResponse> {
-    // setup response
     let mut res: SlackResponse = SlackResponse {
         status: "".to_string(),
     };
-    // From dato into request struct
     let request: SlackRequest = req.into_inner();
 
-    // Validate slack token here
-    let validate_token = validate_token(&request.text);
+    let validate_slack_token = validate_token(&request.token);
 
-    match validate_token {
-        Ok(_) => res.status = "ok".to_string(),
-        Err(_e) => res.status = "failed to validate token".to_string(),
+    match validate_slack_token {
+        // should log here
+        Ok(_) => println!("token valid"),
+        Err(e) => {
+            res.status = format!("Error: {}", e);
+            return Json(res);
+        }
     }
 
     let command: Vec<&str> = request.text.split_ascii_whitespace().collect();
 
-    // correct number of arguments?
+    // context
     if command.len() > 0 && command.len() < 5 {
-        // List context
         if command[0] == "list" {
             res.status = format!("/timereport list")
-        // Add context
         } else if command[0] == "add" {
             res.status = format!("/timereport add")
-        // Delete context
         } else if command[0] == "delete" {
             res.status = format!("/timereport delete")
-        // Error handling
         } else {
             res.status = format!("wrong number of arguments: {}", command.len())
         }
@@ -130,28 +126,56 @@ fn slack_request(req: Form<SlackRequest>) -> Json<SlackResponse> {
         res.status = format!("Wrong number of args supplied {}", command.len());
     }
 
-    // respond
     Json(res)
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    start_server().await?;
+    start_server().launch();
 
     Ok(())
 }
 
-pub async fn start_server() -> Result<(), Error> {
-    let mut builder = TerminalLoggerBuilder::new();
-    builder.level(Severity::Debug);
-    builder.destination(Destination::Stderr);
-    let logger = builder.build()?;
-    let fairing = SlogFairing::new(logger);
+pub fn start_server() -> rocket::Rocket {
+    rocket::ignite().mount("/", routes![slack_request])
+}
 
-    let config = Config::build(Environment::Development)
-        .log_level(LoggingLevel::Off)
-        .finalize()
-        .unwrap();
-    rocket::custom(config).attach(fairing).launch();
-    Ok(())
+#[cfg(test)]
+mod test {
+    use super::{rocket, start_server};
+    use rocket::http::ContentType;
+    use rocket::http::Status;
+    use rocket::local::Client;
+
+    #[test]
+    fn test_invalid_token() {
+        let client = Client::new(start_server()).expect("valid rocket instance");
+        let mut response = client
+            .post("/")
+            .body("token=fail&team_id=team_id&team_domain=team_domain&enterprise_id=enterprise_id&enterprise_name=enterprise_name&channel_id=channel_id&channel_name=channel_name&user_id=user_id&user_name=user_name&command=command&text=add+vacation+today&response_url=response_url&trigger_id=trigger_id&api_app_id=api_app_id")
+            .header(ContentType::Form)
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.content_type(), Some(ContentType::JSON));
+        assert_eq!(
+            response.body_string(),
+            Some("{\"status\":\"Error: invalid token\"}".into())
+        );
+    }
+
+    #[test]
+    fn test_slack_request_invalid_reason() {
+        let client = Client::new(start_server()).expect("valid rocket instance");
+        let mut response = client
+            .post("/")
+            .body("token=token&team_id=team_id&team_domain=team_domain&enterprise_id=enterprise_id&enterprise_name=enterprise_name&channel_id=channel_id&channel_name=channel_name&user_id=user_id&user_name=user_name&command=command&text=add+invalid+reason&response_url=response_url&trigger_id=trigger_id&api_app_id=api_app_id")
+            .header(ContentType::Form)
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.content_type(), Some(ContentType::JSON));
+        assert_eq!(
+            response.body_string(),
+            Some("{\"status\":\"invalid is an invalid reason.\"}".into())
+        );
+    }
 }
