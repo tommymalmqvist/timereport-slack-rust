@@ -82,6 +82,31 @@ impl Reason {
     }
 }
 
+enum Actions {
+    Add,
+    List,
+    Delete,
+}
+
+impl Actions {
+    pub fn from_str(s: &str) -> Result<Actions, Error> {
+        match s {
+            "add" => Ok(Actions::Add),
+            "list" => Ok(Actions::List),
+            "delete" => Ok(Actions::Delete),
+            _ => bail!("ERROR"),
+        }
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match *self {
+            Actions::Add => "add",
+            Actions::List => "list",
+            Actions::Delete => "delete",
+        }
+    }
+}
+
 #[post("/", data = "<req>")]
 fn slack_request(req: Form<SlackRequest>) -> Json<SlackResponse> {
     let mut res: SlackResponse = SlackResponse {
@@ -102,20 +127,12 @@ fn slack_request(req: Form<SlackRequest>) -> Json<SlackResponse> {
 
     let command: Vec<&str> = request.text.split_ascii_whitespace().collect();
 
-    // context
-    if command.len() > 0 && command.len() < 5 {
-        if command[0] == "list" {
-            res.status = format!("/timereport list")
-        } else if command[0] == "add" {
-            res.status = format!("/timereport add")
-        } else if command[0] == "delete" {
-            res.status = format!("/timereport delete")
-        } else {
-            res.status = format!("wrong number of arguments: {}", command.len())
-        }
+    if command.len() == 0 {
+        res.status = format!("{} is a valid reason", command[0]);
+        return Json(res);
     }
 
-    // validate reason
+    // context
     if command.len() == 3 || command.len() == 4 {
         if let Ok(_) = Reason::from_str(command[1]) {
             res.status = format!("{} is a valid reason.", command[1]);
