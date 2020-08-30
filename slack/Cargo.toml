@@ -10,6 +10,7 @@ rocket_contrib = { version = "0.4.5", features = ["json"] }
 rocket-slog = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 failure = "0.1.8"
+failure_derive = "0.1.8"
 slog = "2.5.2"
 sloggers = "1.0.1"
 tokio = { version = "0.2", features = ["macros", "time"] }

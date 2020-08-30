@@ -1227,6 +1227,7 @@ name = "slack"
 version = "0.1.0"
 dependencies = [
  "failure",
+ "failure_derive",
  "rocket",
  "rocket-slog",
  "rocket_contrib",

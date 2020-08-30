@@ -12,6 +12,12 @@ extern crate slog;
 #[macro_use]
 extern crate sloggers;
 
+#[macro_use]
+extern crate failure;
+
+#[macro_use]
+extern crate failure_derive;
+
 use failure::{bail, Error};
 use serde::{Deserialize, Serialize};
 
@@ -28,6 +34,9 @@ use sloggers::{
 
 mod model;
 use model::{SlackRequest, SlackResponse};
+
+mod validate;
+use validate::validate_token;
 
 const BACKEND_URL: &str = "http://backend_url";
 
@@ -76,15 +85,22 @@ impl Reason {
 
 #[post("/", data = "<req>")]
 fn slack_request(req: Form<SlackRequest>) -> Json<SlackResponse> {
-    let request: SlackRequest = req.into_inner();
-
-    // Validate slack token here
-
-    let command: Vec<&str> = request.text.split_ascii_whitespace().collect();
-
+    // setup response
     let mut res: SlackResponse = SlackResponse {
         status: "".to_string(),
     };
+    // From dato into request struct
+    let request: SlackRequest = req.into_inner();
+
+    // Validate slack token here
+    let validate_token = validate_token(&request.text);
+
+    match validate_token {
+        Ok(_) => res.status = "ok".to_string(),
+        Err(_e) => res.status = "failed to validate token".to_string(),
+    }
+
+    let command: Vec<&str> = request.text.split_ascii_whitespace().collect();
 
     // correct number of arguments?
     if command.len() > 0 && command.len() < 5 {
