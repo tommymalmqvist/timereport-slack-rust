@@ -7,9 +7,9 @@ pub fn validate_token(s: &str) -> Result<&'static str, &'static str> {
     }
 }
 
-pub fn validate_reason(s: &str) -> Result<String, String> {
+pub fn validate_reason(s: &str) -> Result<(), String> {
     if let Ok(_) = Reason::from_str(s) {
-        Ok(format!("reason {} is valid", s))
+        Ok(())
     } else {
         Err(format!("reason {} is not valid", s))
     }
@@ -20,19 +20,16 @@ mod test {
     use super::validate_reason;
     #[test]
     fn test_invalid_reason() {
-        let invalid: &str = "invalid";
+        let s: &str = "invalid";
         assert_eq!(
-            validate_reason(invalid),
-            Err("reason fail is not valid".into())
+            validate_reason(s),
+            Err(format!("reason {} is not valid", s).into())
         );
     }
 
     #[test]
     fn test_valid_reason() {
         let valid: &str = "vacation";
-        assert_eq!(
-            validate_reason(valid),
-            Ok("reason vacation is valid".into())
-        );
+        assert_eq!(validate_reason(valid), Ok(()));
     }
 }
