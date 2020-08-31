@@ -1,9 +1,9 @@
 use super::Reason;
 
-pub fn validate_token(s: &str) -> Result<&'static str, &'static str> {
+pub fn validate_token(s: &str) -> Result<(), String> {
     match s.len() {
-        5 => Ok("valid token"),
-        _ => Err("invalid token"),
+        5 => Ok(()),
+        _ => Err(format!("{} is not a valid token", s)),
     }
 }
 

@@ -68,7 +68,7 @@ impl Reason {
             "vacation" => Ok(Reason::Vacation),
             "internal" => Ok(Reason::Internal),
             "childcare" => Ok(Reason::ChildCare),
-            _ => bail!("ERROR"),
+            _ => bail!("Error: {s} is not a valid reason"),
         }
     }
 
@@ -94,7 +94,7 @@ impl Actions {
             "add" => Ok(Actions::Add),
             "list" => Ok(Actions::List),
             "delete" => Ok(Actions::Delete),
-            _ => bail!("ERROR"),
+            _ => bail!("Error: {} is not a valid action"),
         }
     }
 
@@ -176,7 +176,7 @@ mod test {
         assert_eq!(response.content_type(), Some(ContentType::JSON));
         assert_eq!(
             response.body_string(),
-            Some("{\"status\":\"Error: invalid token\"}".into())
+            Some("{\"status\":\"Error: fail is not a valid token\"}".into())
         );
     }
 
